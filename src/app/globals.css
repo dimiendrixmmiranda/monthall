@@ -2,9 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'JunigardenSerif';
+  src: url('fonts/JunigardenSerif.otf');
+}
+
 :root {
-  --background: #ffffff;
+  --background: rgb(24, 23, 23);
   --foreground: #171717;
+  --area-porta-altura: 310px;
+  --area-porta-largura: 200px;
+  --macaneta: 25px;
+  --fonteTitulo: 'JunigardenSerif', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,12 +25,20 @@
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background-color: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.titulo{
+  font-family: var(--fonteTitulo);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
