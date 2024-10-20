@@ -1,10 +1,13 @@
 'use client'
 import Começar from "@/components/Comecar";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Porta from "@/components/Porta";
 import { InterfacePorta } from "@/core/porta/interfacePorta";
 import useGerarPortas from "@/data/hooks/useGerarPortas";
 import Image from "next/image";
+import { inicializarContadores } from "@/utils/inicializarContadores";
+import { atualizarContadores } from "@/utils/atualizarContadores";
+import { limparDados } from "@/utils/limparDadosLocalStorage";
 
 export default function Home() {
 	const [visibleComecar, setVisibleComecar] = useState(true)
@@ -13,9 +16,28 @@ export default function Home() {
 	const [visibleBoxPergunta, setVisibleBoxPergunta] = useState(false)
 	const [ganhou, setGanhou] = useState(false)
 	const [perdeu, setPerdeu] = useState(false)
-
 	const [portaSelecionada, setPortaSelecionada] = useState<InterfacePorta | null>(null)
 	const portas = useGerarPortas(3)
+	// Estados para armazenar as estatísticas
+	const [vitorias, setVitorias] = useState(0);
+	const [derrotas, setDerrotas] = useState(0);
+	const [totalJogos, setTotalJogos] = useState(0);
+
+	// UseEffect para inicializar contadores ao carregar o componente
+	useEffect(() => {
+		inicializarContadores();
+	}, []);
+
+	 // Função para recuperar dados do localStorage quando o componente é montado
+	 useEffect(() => {
+		const storedVitorias = localStorage.getItem("vitorias");
+		const storedDerrotas = localStorage.getItem("derrotas");
+		const storedTotalJogos = localStorage.getItem("totalJogos");
+	
+		if (storedVitorias) setVitorias(parseInt(storedVitorias));
+		if (storedDerrotas) setDerrotas(parseInt(storedDerrotas));
+		if (storedTotalJogos) setTotalJogos(parseInt(storedTotalJogos));
+	  }, []);
 
 	function comecarJogo(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
@@ -67,18 +89,22 @@ export default function Home() {
 		const porta = e.currentTarget?.dataset.porta
 
 		if (porta == 'selecionada') {
-			const resultado = portas.listaPortas?.filter(porta => porta.selecionada == true && portaSelecionada?.temPresente == true)
+			const resultado = portas.listaPortas?.filter(porta => porta.selecionada == true && portaSelecionada?.temPresente == true);
 			if (resultado != undefined && resultado.length > 0) {
-				setGanhou(true)
+				setGanhou(true);
+				atualizarContadores(true); // Atualiza como vitória
 			} else {
 				setPerdeu(true);
+				atualizarContadores(false); // Atualiza como derrota
 			}
 		} else {
-			const resultado = portas.listaPortas?.filter(porta => porta.selecionada == false && porta.temPresente == true)
+			const resultado = portas.listaPortas?.filter(porta => porta.selecionada == false && porta.temPresente == true);
 			if (resultado != undefined && resultado.length > 0) {
-				setGanhou(true)
+				setGanhou(true);
+				atualizarContadores(true); // Atualiza como vitória
 			} else {
-				setPerdeu(true)
+				setPerdeu(true);
+				atualizarContadores(false); // Atualiza como derrota
 			}
 		}
 
@@ -116,7 +142,7 @@ export default function Home() {
 				<div className="relative w-[50px] h-[70px]">
 					<Image src={'/porta-interrogacao.png'} alt="porta" fill className="object-cover"></Image>
 				</div>
-				<h2 className="text-white text-6xl mt-3 titulo">Monthall</h2>
+				<h2 className="text-white text-5xl mt-3 titulo md:text-6xl">Monthall</h2>
 			</div>
 			<Começar visible={visibleComecar} comecarJogo={comecarJogo}></Começar>
 			{
@@ -170,6 +196,13 @@ export default function Home() {
 						<button onClick={() => jogarNovamente()} className="w-full bg-red-500 text-xl p-2 mt-3">Jogar novamente</button>
 					</div> : ''
 			}
+			{/* Exibindo as estatísticas */}
+			<div className="text-white text-center my-5">
+				<p>Total de Jogos: {totalJogos}</p>
+				<p>Vitórias: {vitorias}</p>
+				<p>Derrotas: {derrotas}</p>
+				<button className="bg-red-600 px-4 py-1 rounded-lg mt-4" onClick={() => limparDados()}>Limpar Dados</button>
+			</div>
 		</div>
 	)
 }
