@@ -4,7 +4,7 @@ interface MainProps {
 
 export default function Main({ children }: MainProps) {
     return (
-        <main className="flex flex-col p-4 min-h-[80vh] md:p-8">
+        <main className="overflow-hidden min-h-[100vh] flex justify-center xl:min-h-[80vh]">
             {children}
         </main>
     )

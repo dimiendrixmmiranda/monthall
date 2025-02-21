@@ -12,10 +12,12 @@ export default function Page() {
 
     const [boxSelecionarCaixa, setBoxSelecionarCaixa] = useState(false)
     const [boxManterTrocarPorta, setBoxManterTrocarPorta] = useState(false)
-    const [boxGanhou, setBoxGanhou] = useState(false)
-    const [boxPerdeu, setBoxPerdeu] = useState(false)
     const [boxTextoInicial, setBoxTextoInicial] = useState(true)
+    const [ganhouPerdeu, setGanhouPerdeu] = useState<boolean | null>(null)
 
+    const [tentativas, setTentativas] = useState(0)
+    const [acertos, setAcertos] = useState(0)
+    const [porcentagem, setPorcentagem] = useState(0)
 
     useEffect(() => {
         const sortearNumero = Math.floor(Math.random() * 3)
@@ -93,11 +95,12 @@ export default function Page() {
 
         if (novoArrayPortas != undefined) {
             if (novoArrayPortas[idNovaPortaSelecionada] != undefined && novoArrayPortas[idNovaPortaSelecionada].selecionada && novoArrayPortas[idNovaPortaSelecionada].temPresente) {
-                setBoxGanhou(true)
+                setGanhouPerdeu(true)
+                atualizarEstatisticas(true);
             } else {
-                setBoxPerdeu(true)
+                setGanhouPerdeu(false)
+                atualizarEstatisticas(false);
             }
-            console.log(novoArrayPortas)
         }
     }
 
@@ -118,9 +121,11 @@ export default function Page() {
         if (portaSelecionada != null && portas != null) {
             const pSelecionada = portas[portaSelecionada]
             if (pSelecionada.temPresente && pSelecionada.selecionada) {
-                setBoxGanhou(true)
+                setGanhouPerdeu(true)
+                atualizarEstatisticas(true);
             } else {
-                setBoxPerdeu(true)
+                setGanhouPerdeu(false)
+                atualizarEstatisticas(true);
             }
         }
     }
@@ -129,16 +134,42 @@ export default function Page() {
         return window.location.reload()
     }
 
+    useEffect(() => {
+        const tentativasSalvas = localStorage.getItem("tentativas");
+        const acertosSalvos = localStorage.getItem("acertos");
+    
+        setTentativas(tentativasSalvas ? parseInt(tentativasSalvas) : 0);
+        setAcertos(acertosSalvos ? parseInt(acertosSalvos) : 0);
+    }, []);
+    
+    useEffect(() => {
+        // Calcula a porcentagem de acertos
+        if (tentativas > 0) {
+            setPorcentagem(Math.round((acertos / tentativas) * 100));
+        }
+    }, [acertos, tentativas]);
+
+    function atualizarEstatisticas(venceu: boolean) {
+        const novasTentativas = tentativas + 1;
+        const novosAcertos = venceu ? acertos + 1 : acertos;
+    
+        setTentativas(novasTentativas);
+        setAcertos(novosAcertos);
+        setPorcentagem(Math.round((novosAcertos / novasTentativas) * 100));
+    
+        // Armazena no localStorage
+        localStorage.setItem("tentativas", novasTentativas.toString());
+        localStorage.setItem("acertos", novosAcertos.toString());
+    }
 
     return (
         <Template>
-            <div className="flex gap-3 relative justify-center items-center h-full">
-
-                <div className={`absolute top-0 ${boxTextoInicial ? 'block' : 'hidden'}`}>
-                    <h1 className="text-4xl font-custom1">Selecione uma porta!</h1>
+            <div className="game">
+                <div className={`${boxTextoInicial ? 'flex' : 'hidden'} row-start-1 row-end-2 justify-center items-center`}>
+                    <h1 className="text-4xl text-center font-custom1 md:text-6xl">Selecione uma porta!</h1>
                 </div>
 
-                <div className="flex gap-3 w-fit">
+                <div className="flex flex-wrap gap-3 justify-center items-center mx-auto w-fit h-fit row-start-2 row-end-3">
                     {
                         portas?.map((p, i) => (
                             <div key={i}>
@@ -155,6 +186,7 @@ export default function Page() {
                     }
                 </div>
 
+                {/* Box Selecionar Porta */}
                 <div className={`${boxSelecionarCaixa ? 'flex' : 'hidden'} flex-col gap-2 absolute z-10 bg-[--vermelho] top-[50%] left-[50%] font-custom2 p-4 rounded-lg max-w-[300px] w-full`} style={{ transform: 'translate(-50%,-50%)', boxShadow: '0 0 3px 2px black' }}>
                     <p className="text-2xl font-bold leading-7 text-center">Deseja realmente selecionar essa porta?</p>
                     <div className="grid grid-cols-2 text-xl font-bold gap-2">
@@ -162,24 +194,51 @@ export default function Page() {
                         <button className="bg-red-600 py-1 uppercase" onClick={naoConfirmarSelecaoPorta} style={{ boxShadow: '0 0 2px 1px black' }}>Não</button>
                     </div>
                 </div>
-                <div className={`${boxManterTrocarPorta ? 'flex' : 'hidden'} flex-col gap-3 absolute z-10 bg-[--vermelho] -top-1 left-[50%] font-custom2 p-4 rounded-lg max-w-[400px] w-full md:-top-5`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
+
+                {/* Box Trocar Porta */}
+                <div className={`${boxManterTrocarPorta ? 'flex' : 'hidden'} bg-[--vermelho] absolute flex-col left-[50%] w-full max-w-[300px] gap-2 p-2 sm:max-w-[400px] md:gap-4 md:top-12 md:p-4`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
                     <p className="text-2xl font-bold leading-7 text-center">E agora? deseja ficar com sua porta ou vai trocar?</p>
-                    <div className="grid grid-cols-2 text-xl font-bold gap-2">
+                    <div className="grid grid-cols-2 text-lg leading-5 font-bold gap-2 md:text-xl md:gap-6">
                         <button className="bg-green-600 py-1 uppercase" onClick={manterPorta} style={{ boxShadow: '0 0 2px 1px black' }}>manter Porta</button>
                         <button className="bg-red-600 py-1 uppercase" onClick={trocarDePorta} style={{ boxShadow: '0 0 2px 1px black' }}>trocar Porta</button>
                     </div>
                 </div>
-                <div className={`${boxGanhou ? 'block' : 'hidden'} flex-col gap-2 absolute z-10 bg-green-600 top-10 left-[50%] font-custom2 p-4 rounded-lg max-w-[400px] w-full`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
-                    <p className="text-2xl font-bold leading-7 text-center">Parabéns!!! Você Ganhou!!!</p>
-                </div>
-                <div className={`${boxPerdeu ? 'block' : 'hidden'} flex-col gap-2 absolute z-10 bg-[--vermelho] top-10 left-[50%] font-custom2 p-4 rounded-lg max-w-[400px] w-full`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
-                    <p className="text-2xl font-bold leading-7 text-center">Infelizmente você perdeu!</p>
-                </div>
-                <div className={`${boxPerdeu ? 'block' : 'hidden'} flex-col justify-center gap-2 absolute z-10 bg-[--vermelho] bottom-8 left-[50%] font-custom2 p-4 rounded-lg max-w-[400px] w-full`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
-                    <button onClick={() => reiniciarGame()} className="uppercase font-bold w-full text-xl">Jogar Novamente</button>
-                </div>
-                <div className={`${boxGanhou ? 'block' : 'hidden'} flex-col justify-center gap-2 absolute z-10 bg-[--vermelho] bottom-8 left-[50%] font-custom2 p-4 rounded-lg max-w-[400px] w-full`} style={{ transform: 'translate(-50%)', boxShadow: '0 0 3px 2px black' }}>
-                    <button onClick={() => reiniciarGame()} className="uppercase font-bold w-full text-xl">Jogar Novamente</button>
+
+                {
+                    ganhouPerdeu != null ? (
+                        ganhouPerdeu ? (
+                            <div className="bg-green-600 absolute top-6 left-[50%] text-2xl w-full max-w-[300px] p-4 rounded-lg text-center leading-6 font-bold md:text-3xl md:max-w-[400px] md:top-10" style={{ transform: 'translate(-50%)', boxShadow: '2px 2px 3px 2px black' }}>
+                                <h2>Parabéns! Você fez a escolha correta e <b>Ganhou!!!!</b></h2>
+                            </div>
+                        ) : (
+                            <div className="bg-red-600 absolute top-6 left-[50%] text-2xl w-full max-w-[300px] p-4 rounded-lg text-center leading-6 font-bold md:text-3xl md:max-w-[400px] md:top-10" style={{ transform: 'translate(-50%)', boxShadow: '2px 2px 3px 2px black' }}>
+                                <h2>Que Azar! Infelizmente você fez a escolha errada e <b>Perdeu!!!!</b></h2>
+                            </div>
+                        )
+                    ) : ('')
+                }
+
+                {
+                    ganhouPerdeu != null ? (
+                        <div className="bg-red-700 bottom-5 absolute text-2xl font-bold left-[50%] whitespace-nowrap py-1 rounded-lg w-full max-w-[300px] text-center sm:bottom-36 sm:text-3xl sm:p-4 md:bottom-4 md:p-2 xl:bottom-24" style={{ transform: 'translate(-50%)', boxShadow: '2px 2px 3px 2px black' }}>
+                            <button onClick={() => reiniciarGame()}>Jogar novamente</button>
+                        </div>
+                    ) : ''
+                }
+
+                <div className="hidden flex-col absolute right-4 font-custom2 md:flex lg:text-xl lg:right-6 xl:text-2xl xl:right-8 xl:top-8">
+                    <div className="flex gap-2">
+                        <span>Tentativas:</span>
+                        <span>{tentativas}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <span>Acertos:</span>
+                        <span>{acertos}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        <span>Porcentagem:</span>
+                        <span>{porcentagem}%</span>
+                    </div>
                 </div>
             </div>
         </Template>
