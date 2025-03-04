@@ -137,11 +137,11 @@ export default function Page() {
     useEffect(() => {
         const tentativasSalvas = localStorage.getItem("tentativas");
         const acertosSalvos = localStorage.getItem("acertos");
-    
+
         setTentativas(tentativasSalvas ? parseInt(tentativasSalvas) : 0);
         setAcertos(acertosSalvos ? parseInt(acertosSalvos) : 0);
     }, []);
-    
+
     useEffect(() => {
         // Calcula a porcentagem de acertos
         if (tentativas > 0) {
@@ -152,14 +152,24 @@ export default function Page() {
     function atualizarEstatisticas(venceu: boolean) {
         const novasTentativas = tentativas + 1;
         const novosAcertos = venceu ? acertos + 1 : acertos;
-    
-        setTentativas(novasTentativas);
-        setAcertos(novosAcertos);
-        setPorcentagem(Math.round((novosAcertos / novasTentativas) * 100));
-    
-        // Armazena no localStorage
-        localStorage.setItem("tentativas", novasTentativas.toString());
-        localStorage.setItem("acertos", novosAcertos.toString());
+
+        if (novasTentativas >= 10) {
+            resetar()
+        } else {
+            setTentativas(novasTentativas);
+            setAcertos(novosAcertos);
+            setPorcentagem(Math.round((novosAcertos / novasTentativas) * 100));
+            localStorage.setItem("tentativas", novasTentativas.toString());
+            localStorage.setItem("acertos", novosAcertos.toString());
+        }
+    }
+
+    function resetar() {
+        setTentativas(0);
+        setAcertos(0);
+        setPorcentagem(0);
+        localStorage.setItem("tentativas", "0");
+        localStorage.setItem("acertos", "0");
     }
 
     return (
@@ -239,6 +249,7 @@ export default function Page() {
                         <span>Porcentagem:</span>
                         <span>{porcentagem}%</span>
                     </div>
+                    <button className="text-lg bg-red-500 mt-2 py-1 rounded-lg" onClick={() => resetar()}>Resetar Estatisticas</button>
                 </div>
             </div>
         </Template>
