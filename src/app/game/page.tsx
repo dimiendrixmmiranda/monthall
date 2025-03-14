@@ -4,6 +4,7 @@ import Porta from "@/components/porta/Porta";
 import Template from "@/components/template/Template";
 import InterfacePorta from "@/core/interface/Porta";
 import { listaDePortas } from "@/core/constants/listaDePortas";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
     const [portas, setPortas] = useState<InterfacePorta[] | null>(null)
@@ -18,6 +19,8 @@ export default function Page() {
     const [tentativas, setTentativas] = useState(0)
     const [acertos, setAcertos] = useState(0)
     const [porcentagem, setPorcentagem] = useState(0)
+
+    const router = useRouter()
 
     useEffect(() => {
         const sortearNumero = Math.floor(Math.random() * 3)
@@ -168,8 +171,7 @@ export default function Page() {
         setTentativas(0);
         setAcertos(0);
         setPorcentagem(0);
-        localStorage.setItem("tentativas", "0");
-        localStorage.setItem("acertos", "0");
+        router.push(`/resultados`)
     }
 
     return (
